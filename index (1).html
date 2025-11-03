@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informační systém IS_AM</title>
+  
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      max-width: 900px;
+      width: 100%;
+      padding: 40px;
+    }
+    
+    .logo {
+      background: #2E86C1;
+      color: white;
+      padding: 25px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .logo h1 {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    
+    .logo p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    /* Přihlašovací obrazovka */
+    #loginScreen {
+      text-align: center;
+    }
+    
+    .welcome-text {
+      color: #2c3e50;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+    
+    .welcome-text h2 {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+    
+    #buttonDiv {
+      display: flex;
+      justify-content: center;
+      margin: 30px 0;
+    }
+    
+    .loading {
+      display: none;
+      color: #2E86C1;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #2E86C1;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .error {
+      display: none;
+      background: #fee;
+      border: 1px solid #fcc;
+      color: #c33;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+    }
+    
+    /* Obrazovka bez oprávnění */
+    #noPermissionScreen {
+      display: none;
+      text-align: center;
+    }
+    
+    .denied-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+    
+    .denied-box {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 25px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
+    .denied-box h2 {
+      color: #856404;
+      margin-bottom: 15px;
+    }
+    
+    .denied-email {
+      background: white;
+      padding: 12px;
+      border-radius: 4px;
+      margin: 15px 0;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    
+    .denied-box p {
+      color: #856404;
+      line-height: 1.6;
+    }
+    
+    .btn-logout {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      text-decoration: none;
+    }
+    
+    .btn-logout:hover {
+      background: #c82333;
+    }
+    
+    /* Hlavní obsah */
+    #mainScreen {
+      display: none;
+    }
+    
+    .user-header {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+    
+    .user-header h2 {
+      color: #2c3e50;
+      margin-bottom: 5px;
+      font-size: 20px;
+    }
+    
+    .user-header .email {
+      color: #6c757d;
+      font-size: 14px;
+    }
+    
+    .buttons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .button-card {
+      background: linear-gradient(135deg, #2E86C1 0%, #3498db 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 10px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 100px;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    }
+    
+    .button-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+      background: linear-gradient(135deg, #1e5f8c 0%, #2980b9 100%);
+    }
+    
+    .no-buttons {
+      text-align: center;
+      color: #6c757d;
+      padding: 40px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    
+    .no-buttons-icon {
+      font-size: 50px;
+      margin-bottom: 15px;
+    }
+    
+    .logout-link {
+      display: block;
+      text-align: center;
+      margin-top: 30px;
+      color: #6c757d;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    
+    .logout-link:hover {
+      color: #2E86C1;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 25px;
+      }
+      
+      .logo h1 {
+        font-size: 22px;
+      }
+      
+      .buttons-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <h1>Informační systém IS_AM</h1>
+      <p>Systém pro správu a komunikaci</p>
+    </div>
+    
+    <!-- Přihlašovací obrazovka -->
+    <div id="loginScreen">
+      <div class="welcome-text">
+        <h2>Vítejte</h2>
+        <p>Pro přístup do systému se přihlaste pomocí vašeho Google účtu.</p>
+      </div>
+      
+      <div id="buttonDiv"></div>
+      
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Ověřuji oprávnění...</p>
+      </div>
+      
+      <div class="error" id="error"></div>
+    </div>
+    
+    <!-- Obrazovka pro neoprávněného uživatele -->
+    <div id="noPermissionScreen">
+      <div class="denied-icon">⛔</div>
+      <div class="denied-box">
+        <h2>Přístup odepřen</h2>
+        <p>Jste přihlášeni k účtu, který nemá oprávnění ke vstupu do systému IS_AM.</p>
+        <div class="denied-email" id="deniedEmail"></div>
+        <p>Přihlašte se prosím pod registrovaným účtem nebo požádejte správce o přidání přístupových práv.</p>
+      </div>
+      <button class="btn-logout" onclick="logout()">Přihlásit se jiným účtem</button>
+    </div>
+    
+    <!-- Hlavní obsah -->
+    <div id="mainScreen">
+      <div class="user-header">
+        <h2 id="userName"></h2>
+        <div class="email" id="userEmail"></div>
+      </div>
+      
+      <div id="buttonsContainer"></div>
+      
+      <a href="#" class="logout-link" onclick="logout(); return false;">🚪 Odhlásit se</a>
+    </div>
+  </div>
+  
+  <script>
+    // !!! DŮLEŽITÉ: ZMĚŇ TYTO HODNOTY !!!
+    const CLIENT_ID = '444236286085-cnjn22vle7m53ef3dbc8bp98jdfog9vt.apps.googleusercontent.com';
+    const SCRIPT_URL = 'TVOJE_APPS_SCRIPT_URL_TADY'; // např: https://script.google.com/macros/s/AKfy.../exec
+    
+    let currentUser = null;
+    
+    // Inicializace Google Sign-In
+    function initializeGoogleSignIn() {
+      google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: handleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true
+      });
+      
+      google.accounts.id.renderButton(
+        document.getElementById("buttonDiv"),
+        { 
+          theme: "outline", 
+          size: "large",
+          text: "signin_with",
+          shape: "rectangular",
+          logo_alignment: "left",
+          locale: "cs"
+        }
+      );
+      
+      // Pokusit se o automatické přihlášení (One Tap)
+      google.accounts.id.prompt();
+    }
+    
+    // Zpracování odpovědi po přihlášení
+    function handleCredentialResponse(response) {
+      const payload = parseJwt(response.credential);
+      const email = payload.email;
+      
+      currentUser = {
+        email: email,
+        name: payload.name,
+        picture: payload.picture
+      };
+      
+      // Skrýt přihlašovací obrazovku
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+      
+      // Zavolat Apps Script API pro kontrolu oprávnění
+      checkUserAccess(email);
+    }
+    
+    // Zavolání Apps Script API
+    function checkUserAccess(email) {
+      fetch(SCRIPT_URL + '?email=' + encodeURIComponent(email))
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('loading').style.display = 'none';
+          
+          if (data.success) {
+            // Uživatel má přístup
+            showMainScreen(data.userData, email);
+          } else if (data.error === 'noPermission') {
+            // Uživatel nemá oprávnění
+            showNoPermissionScreen(email);
+          } else {
+            // Jiná chyba
+            showError(data.error || 'Neznámá chyba');
+          }
+        })
+        .catch(error => {
+          document.getElementById('loading').style.display = 'none';
+          showError('Chyba při komunikaci se serverem: ' + error.message);
+        });
+    }
+    
+    // Zobrazení hlavní obrazovky
+    function showMainScreen(userData, email) {
+      document.getElementById('userName').textContent = userData.firstName + ' ' + userData.lastName;
+      document.getElementById('userEmail').textContent = email;
+      
+      const container = document.getElementById('buttonsContainer');
+      
+      if (userData.buttons && userData.buttons.length > 0) {
+        let html = '<div class="buttons-grid">';
+        userData.buttons.forEach(btn => {
+          html += `<a href="${btn.url}" class="button-card" target="_blank">${btn.name}</a>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = `
+          <div class="no-buttons">
+            <div class="no-buttons-icon">📋</div>
+            <p>Momentálně nemáte přístup k žádným modulům.</p>
+            <p style="margin-top: 10px; font-size: 14px;">Kontaktujte prosím správce systému.</p>
+          </div>
+        `;
+      }
+      
+      document.getElementById('mainScreen').style.display = 'block';
+    }
+    
+    // Zobrazení obrazovky bez oprávnění
+    function showNoPermissionScreen(email) {
+      document.getElementById('deniedEmail').textContent = email;
+      document.getElementById('noPermissionScreen').style.display = 'block';
+    }
+    
+    // Zobrazení chyby
+    function showError(message) {
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      document.getElementById('loginScreen').style.display = 'block';
+    }
+    
+    // Odhlášení
+    function logout() {
+      google.accounts.id.disableAutoSelect();
+      location.reload();
+    }
+    
+    // Helper: Dekódování JWT tokenu
+    function parseJwt(token) {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    }
+    
+    // Inicializovat po načtení stránky
+    window.onload = function() {
+      initializeGoogleSignIn();
+    };
+  </script>
+</body>
+</html>
